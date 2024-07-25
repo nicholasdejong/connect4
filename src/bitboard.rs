@@ -2,7 +2,7 @@
 pub struct BitBoard(pub u64);
 
 impl BitBoard {
-    // pub const EMPTY: BitBoard = BitBoard(0);
+    pub const EMPTY: BitBoard = BitBoard(0);
     // pub const FULL: BitBoard = BitBoard(!0);
     pub const NOT_A: BitBoard = BitBoard(0xfefefefefefefefe);
     pub const NOT_H: BitBoard = BitBoard(0x7f7f7f7f7f7f7f7f);
@@ -31,6 +31,11 @@ impl BitBoard {
     pub const fn is_full(&self) -> bool {
         self.0 == !0
     }
+
+    /// Returns all bits in the specified column
+    pub fn column(self, column: usize) -> BitBoard {
+        self & BitBoard::A.shl(column)
+    }
 }
 
 impl std::fmt::Debug for BitBoard {
@@ -43,6 +48,13 @@ impl std::ops::Not for BitBoard {
     type Output = Self;
     fn not(self) -> Self::Output {
         BitBoard(!self.0)
+    }
+}
+
+impl std::ops::Sub<u64> for BitBoard {
+    type Output = Self;
+    fn sub(self, rhs: u64) -> Self::Output {
+        BitBoard(self.0 - rhs)
     }
 }
 
