@@ -1,2 +1,5 @@
 /target
 Cargo.lock
+# Profiling
+flamegraph.svg
+perf.data

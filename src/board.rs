@@ -10,12 +10,12 @@ pub enum Player {
 }
 
 impl Player {
-    pub fn signum(&self) -> f32 {
-        match self {
-            Player::Red => -1., // Red is the minimizing player
-            Player::Yellow => 1., // Yellow is the maximizing player
-        }
-    }
+    // pub fn signum(&self) -> f32 {
+    //     match self {
+    //         Player::Red => -1., // Red is the minimizing player
+    //         Player::Yellow => 1., // Yellow is the maximizing player
+    //     }
+    // }
 }
 
 impl std::ops::Not for Player {
@@ -52,9 +52,9 @@ pub struct Board {
 }
 
 impl Board {
-    pub fn new(red: BitBoard, yellow: BitBoard, turn: Player) -> Self {
-        Self { red, yellow, turn }
-    }
+    // pub fn new(red: BitBoard, yellow: BitBoard, turn: Player) -> Self {
+    //     Self { red, yellow, turn }
+    // }
 
     pub fn winner(&self) -> Option<Player> {
         if (horizontal(self.yellow)
@@ -136,25 +136,25 @@ impl Board {
     // }
 }
 
-macro_rules! impl_colour {
-    ($($c:ident::$b:ident::$m:ident),*) => {
-        $(impl Board {
-            pub fn $c(self) -> BitBoard {
-                self.$c
-            }
+// macro_rules! impl_colour {
+//     ($($c:ident::$b:ident::$m:ident),*) => {
+//         $(impl Board {
+//             pub fn $c(self) -> BitBoard {
+//                 self.$c
+//             }
 
-            pub fn $b(&self) -> &BitBoard {
-                &self.$c
-            }
+//             pub fn $b(&self) -> &BitBoard {
+//                 &self.$c
+//             }
 
-            pub fn $m(&mut self) -> &mut BitBoard {
-                &mut self.$c
-            }
-        })*
-    };
-}
+//             pub fn $m(&mut self) -> &mut BitBoard {
+//                 &mut self.$c
+//             }
+//         })*
+//     };
+// }
 
-impl_colour!(red::red_borrow::red_mut, yellow::yellow_borrow::yellow_mut);
+// impl_colour!(red::red_borrow::red_mut, yellow::yellow_borrow::yellow_mut);
 
 impl std::fmt::Display for Board {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -176,7 +176,8 @@ impl std::fmt::Display for Board {
             s.push_str(&row_string);
             s.push_str("\n+---+---+---+---+---+---+---+---+\n");
         }
-        s.push_str("  1   2   3   4   5   6   7   8");
+        s.push_str("  1   2   3   4   5   6   7   8\n");
+        s.push_str(format!("Red: {:?}, Yellow: {:?}", self.red, self.yellow).as_str());
         write!(f, "{s}")
     }
 }
@@ -185,6 +186,11 @@ impl std::fmt::Display for Board {
 pub fn random_move(bb: &BitBoard, rng: &mut ThreadRng) -> Move {
     let moves: Vec<Move> = bb.into();
     moves[rng.gen_range(0..moves.len())]
+}
+
+pub fn choose_move(bb: &BitBoard, idx: usize) -> Move {
+    let moves: Vec<Move> = bb.into();
+    moves[idx]
 }
 
 impl From<&BitBoard> for Vec<Move> {

@@ -3,10 +3,9 @@ use std::cell::RefCell;
 use std::rc::{Rc, Weak};
 use std::time::{Duration, SystemTime};
 
-use rand::Rng;
 use rand::{rngs::ThreadRng, thread_rng};
 
-use crate::{random_move, Board, Move, Player};
+use crate::{random_move, choose_move, Board, Move, Player};
 
 const THINK_TIME: Duration = Duration::new(2, 0);
 
@@ -85,10 +84,6 @@ impl Node {
 type Link = Rc<RefCell<Node>>;
 type WeakLink = Weak<RefCell<Node>>;
 
-impl Drop for Node {
-    fn drop(&mut self) {}
-}
-
 #[derive(Debug)]
 pub struct Root {
     children: Vec<Link>,
@@ -110,10 +105,16 @@ impl Root {
     }
 
     pub fn log_scores(&self) {
-        let scores: Vec<(Move, Score)> = self
+        let scores: Vec<(Move, Score, f32)> = self
             .children
             .iter()
-            .map(|child| (child.borrow().mv, child.borrow().score))
+            .map(|child| {
+                (
+                    child.borrow().mv,
+                    child.borrow().score,
+                    child.borrow().expected_score(),
+                )
+            })
             .collect();
         println!("{scores:#?}");
     }
@@ -134,18 +135,19 @@ impl From<&Board> for Root {
 struct Bandit; // An algorithm for selecting one of a node's children
 impl Bandit {
     fn select(children: &[Link], rounds: usize) -> Link {
-        // children[thread_rng().gen_range(0..children.len())].clone()
+        for child in children {
+            if child.borrow().visited == 0 {
+                return child.clone();
+            }
+        }
         let mut best = f32::NEG_INFINITY;
         let mut best_child = None;
         for child_ref in children {
-            // println!("eEE");
             let child = child_ref.borrow();
-            if child.visited == 0 {
-                return child_ref.clone();
-            }
             // Upper Confidence Bound
             assert!(child.expected_score() >= -1. && child.expected_score() <= 1.);
-            let policy = child.expected_score() + 1. * (2.*(rounds as f32).ln() / child.visited as f32).sqrt();
+            let policy = -child.expected_score()
+                + 2. * (2. * (rounds as f32).ln() / child.visited as f32).sqrt();
             if policy > best {
                 best = policy;
                 best_child = Some(child_ref);
@@ -161,7 +163,7 @@ fn select(root: &Root, board: &mut Board, rounds: usize) -> Link {
     fn select(parent: Link, mut board: &mut Board, rounds: usize) -> Link {
         let mut node = parent.borrow_mut();
         node.visited += 1;
-        if node.children.len() != board.moves().len() as usize {
+        if node.children.len() < board.moves().len() as usize || board.game_over() {
             return parent.clone();
         }
         let child = Bandit::select(&node.children, rounds);
@@ -174,7 +176,13 @@ fn select(root: &Root, board: &mut Board, rounds: usize) -> Link {
 
 /// Expands the selected node
 fn expand(parent: Link, board: &mut Board) -> Link {
-    let mv = random_move(&board.moves(), &mut thread_rng());
+    if board.game_over() {
+        return parent.clone();
+    }
+    let mut node = parent.borrow_mut();
+    // Random move expansion may result in move redundancy and move exclusion, both of which can make the AI oblivious to certain moves or threats.
+    // Therefore, expansion is deterministic and includes all possible moves 
+    let mv = choose_move(&board.moves(), node.children.len());
     board.play(mv);
     let child = Node {
         visited: 1,
@@ -184,7 +192,6 @@ fn expand(parent: Link, board: &mut Board) -> Link {
         ..Default::default()
     };
     let child_link = Rc::new(RefCell::new(child));
-    let mut node = parent.borrow_mut();
     node.children.push(child_link.clone());
     child_link
 }
@@ -207,7 +214,7 @@ fn simulate(mut board: &mut Board, mut rng: &mut ThreadRng) -> Outcome {
         }
         let mv = random_move(&board.moves(), &mut rng);
         board.play(mv);
-        let outcome = traverse_board(board, !colour, &mut rng);
+        let outcome = traverse_board(board, colour, &mut rng);
         board.unplay(mv);
         outcome
     }
@@ -224,8 +231,8 @@ fn backpropagate(link: Link, mut outcome: Outcome, board: &mut Board) {
         let mut node = cloned.borrow_mut();
         board.unplay(node.mv);
         node.score.update(&outcome);
-        outcome = -outcome; // A win for the one colour is a loss for the other
         let parent = node.parent.clone();
+        outcome = -outcome; // A win for the one colour is a loss for the other
         if parent.is_none() {
             break;
         } else {

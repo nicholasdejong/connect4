@@ -2,7 +2,6 @@ mod bitboard;
 mod board;
 mod montecarlo;
 
-use bitboard::BitBoard;
 use board::*;
 use montecarlo::mcts;
 
@@ -52,7 +51,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
     println!("{board}");
-    // println!("{:?}", board.winner());
     if let Some(colour) = board.winner() {
         println!("The winner is {colour:?}!");
     };
