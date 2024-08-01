@@ -18,7 +18,14 @@ pub fn init() -> Result<(), Box<dyn Error>> {
     let mut board = Board::default();
 
     loop {
-        let command = get_command()?;
+        let command;
+        match get_command() {
+            Ok(c) => {command = c}
+            Err(e) => {
+                println!("warn {e}");
+                continue;
+            }
+        }
 
         match command.get_type() {
             CT::C4i => {
@@ -50,10 +57,10 @@ pub fn init() -> Result<(), Box<dyn Error>> {
                 board.yellow = yellow;
             }
         }
-        let mv = search_handler.get_mv();
-        if let Some(mv) = mv {
-            send_message(format!("bestmove {mv:?}").as_str());
-        }
+        // let mv = search_handler.get_mv();
+        // if let Some(mv) = mv {
+        //     send_message(format!("bestmove {mv:?}").as_str());
+        // }
     }
     Ok(())
 }

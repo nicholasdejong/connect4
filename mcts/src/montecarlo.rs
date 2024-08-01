@@ -196,5 +196,7 @@ pub fn mcts(mut board: &mut Board, think_time: Duration, should_stop: Arc<Mutex<
         .iter()
         .for_each(|child| child.borrow_mut().score.invert());
     let mv = root.best();
+    println!("info rounds {rounds}");
+    println!("bestmove {mv:?}");
     mv
 }

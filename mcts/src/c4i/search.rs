@@ -47,16 +47,17 @@ impl SearchHandler {
         }
     }
 
-    pub fn get_mv(&mut self) -> Option<Move> {
-        if let Some(handle) = &mut self.handle {
-            if handle.is_finished() || !self.searching {
-                let mv = self.handle.take().unwrap().join().expect("search failed");
-                Some(mv)
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    }
+    // pub fn get_mv(&mut self) -> Option<Move> {
+    //     if let Some(handle) = &mut self.handle {
+    //         println!("getting mv");
+    //         if handle.is_finished() || !self.searching {
+    //             let mv = self.handle.take().unwrap().join().expect("search failed");
+    //             Some(mv)
+    //         } else {
+    //             None
+    //         }
+    //     } else {
+    //         None
+    //     }
+    // }
 }
