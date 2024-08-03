@@ -2,7 +2,7 @@ use std::io::stdin;
 use std::time::Duration;
 use thiserror::Error;
 
-use crate::types::{bitboard::BitBoard, player::Player};
+use types::{bitboard::BitBoard, player::Player};
 
 /// Handles the parsing of user IO
 
@@ -24,8 +24,8 @@ pub enum CommandType {
 
     GoTime(Duration),
     SetOption(EngineOption),
-
-    CustomPosition(BitBoard, BitBoard), // Red, Yellow
+    /// Ordered (Red, Yellow)
+    CustomPosition(BitBoard, BitBoard),
 }
 
 impl Command {
@@ -49,11 +49,17 @@ pub enum CommandParseError {
 /// A blocking operation to get the latest user command
 pub fn get_command() -> Result<Command, CommandParseError> {
     let mut buf = String::new();
-    stdin()
-        .read_line(&mut buf)
-        .map_err(|_| CommandParseError::IOError)?;
-    let mut parts = buf.split_whitespace();
-    let first = parts.next().ok_or(CommandParseError::ExpectedArgument)?;
+    // Ignore empty lines
+    let mut parts = loop {
+        buf.clear();
+        let _ = stdin().read_line(&mut buf).map_err(|e| eprintln!("IOError: {e}"));
+        if buf.trim().is_empty() {
+            continue;
+        }
+        let parts = buf.split_whitespace();
+        break parts;
+    };
+    let first = parts.next().unwrap();
     let command = match first {
         "c4i" => Command(CommandType::C4i),
         "exit" => Command(CommandType::Exit),
