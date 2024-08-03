@@ -1,9 +1,9 @@
-use std::{error::Error, time::Duration};
+use std::{error::Error, io::Write, time::Duration};
 
 use parse::{get_command, EngineOption};
 use search::SearchHandler;
 
-use crate::types::board::Board;
+use types::board::Board;
 use parse::CommandType as CT;
 
 mod parse;
@@ -11,6 +11,7 @@ mod search;
 
 fn send_message(message: &str) {
     println!("{message}");
+    std::io::stdout().flush().unwrap();
 }
 
 pub fn init() -> Result<(), Box<dyn Error>> {
