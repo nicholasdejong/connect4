@@ -2,15 +2,15 @@ use core::f32;
 use std::cell::RefCell;
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use rand::{rngs::ThreadRng, thread_rng};
 
-use crate::types::node::{Link, Node};
-use crate::types::outcome::Outcome;
+use types::node::{Link, Node};
+use types::outcome::Outcome;
 // use crate::types::score::Score;
-use crate::{
+use {
     types::board::{choose_move, random_move, Board},
     types::player::Player,
     types::r#move::Move,
@@ -144,6 +144,29 @@ fn simulate(mut board: &mut Board, mut rng: &mut ThreadRng) -> Outcome {
                 return Outcome::Drawn;
             }
         }
+        // Play a move if it wins immediately
+        // For the moment, this check seems to improve playing strength
+        // If it were less taxing, it the results would be much better
+        // TODO: Optimize
+        let bb = board.moves();
+        let moves: Vec<Move> = (&bb).into();
+        for mv in moves {
+            board.play(mv);
+            if board.game_over() {
+                if let Some(winner) = board.winner() {
+                    if winner == colour {
+                        return Outcome::Won;
+                    } else {
+                        return Outcome::Lost;
+                    }
+                } else {
+                    return Outcome::Drawn;
+                }
+            } else {
+                board.unplay(mv);
+            }
+        }
+        // Otherwise, play a random move
         let mv = random_move(&board.moves(), &mut rng);
         board.play(mv);
         let outcome = traverse_board(board, colour, &mut rng);
@@ -174,7 +197,12 @@ fn backpropagate(link: Link, mut outcome: Outcome, board: &mut Board) {
 }
 
 /// Performs the Monte Carlo Tree Search.
-pub fn mcts(mut board: &mut Board, think_time: Duration, should_stop: Arc<Mutex<AtomicBool>>) -> Move {
+pub fn mcts(
+    mut board: &mut Board,
+    think_time: Duration,
+    should_stop: Arc<AtomicBool>,
+    searching: Arc<AtomicBool>,
+) -> Move {
     let now = Instant::now();
     let root: Root = (&*board).into();
     let mut rng = thread_rng();
@@ -187,7 +215,8 @@ pub fn mcts(mut board: &mut Board, think_time: Duration, should_stop: Arc<Mutex<
         backpropagate(child, outcome, &mut board);
         if rounds % 1024 == 0 {
             // Check whether to stop every 1024 rounds
-            if now.elapsed() > think_time || should_stop.lock().unwrap().load(Ordering::Acquire) {
+            if now.elapsed() > think_time || should_stop.load(Ordering::Acquire) {
+                searching.as_ref().store(false, Ordering::Release);
                 break;
             }
         }
