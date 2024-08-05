@@ -16,3 +16,13 @@ impl std::ops::Neg for Outcome {
         }
     }
 }
+
+impl Outcome {
+    pub fn reward(&self) -> f32 {
+        match self {
+            Outcome::Won => 1.,
+            Outcome::Drawn => 0.,
+            Outcome::Lost => -1.
+        }
+    }
+}

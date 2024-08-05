@@ -5,6 +5,7 @@ use crate::bitboard::BitBoard;
 pub struct Move(BitBoard);
 
 impl Move {
+    pub const EMPTY: Move = Move(BitBoard::EMPTY);
     /// Create a new move from a bitboard
     pub fn new(bb: BitBoard) -> Self {
         Self(bb)
