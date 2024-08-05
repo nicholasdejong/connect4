@@ -3,5 +3,6 @@ pub mod board;
 pub mod r#move;
 pub mod player;
 pub mod outcome;
-pub mod node;
+mod node;
 pub mod score;
+pub mod tree;
