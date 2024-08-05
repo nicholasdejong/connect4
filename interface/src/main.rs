@@ -19,7 +19,7 @@ fn main() {
     let (mut engine1, mut engine2) = (Engine::from_path(&path1), Engine::from_path(&path2));
     assert!(engine1.is_c4i());
     assert!(engine2.is_c4i());
-    let games = 1000;
+    let games = 10;
     let time = Duration::from_millis(100);
     let mut handler = GameHandler::new(engine1, engine2, 1500.0, 1500.0, "Engine 1", "Engine 2");
     let session = handler.play_many(games, time);
