@@ -30,9 +30,11 @@ impl SearchHandler {
             self.search(board, time);
             return;
         }
-        self.searching.as_ref().store(true, std::sync::atomic::Ordering::Release);
+        self.searching
+            .as_ref()
+            .store(true, std::sync::atomic::Ordering::Release);
         self.should_stop
-            .clone()
+            .as_ref()
             .store(false, std::sync::atomic::Ordering::Release);
         let should_stop = self.should_stop.clone();
         let searching = self.searching.clone();
@@ -43,13 +45,15 @@ impl SearchHandler {
         self.handle = Some(handle);
     }
 
-    pub fn stop_search(&mut self) {
+    pub fn stop_search(&self) {
         self.should_stop
-            .clone()
+            .as_ref()
             .store(true, std::sync::atomic::Ordering::Release);
     }
 
     pub fn is_searching(&self) -> bool {
-        self.searching.as_ref().load(std::sync::atomic::Ordering::Acquire)
+        self.searching
+            .as_ref()
+            .load(std::sync::atomic::Ordering::Acquire)
     }
 }
