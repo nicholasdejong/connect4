@@ -27,7 +27,16 @@ I chose to use bitboards to represent the board. This has its benefits and drawb
   - A 42-bit unsigned integer (U42) will be necessary. 
 
 ## The technical details
-TODO
 
+### Development process
+As I implement different features for the program, I tend to separate these features on different branches. There are currently four branches:
+- `master`: The branch where I intend to merge my features into a centralized area for guests to browse, as well as containing the main documentation for this project.
+- `interface`: The branch focusing on developing an interface for interacting with the Connect4 engine. Currently, I use it to benchmark my different iterations of the engines as I try to improve them. I am encountering some drawbacks during this process that I discuss below. In the future, this branch will contain nothing but the interface for the project, meaning if you want to interact with the engine in a more convenient way or pair it against itself, you'd clone this branch, and if you'd want the engine exclusively then you'd clone the branch representing the engine, which right now is `mcts` but is subject to change.
+- `mcts`: I plan to merge this branch with the master branch soon, since this branch contains most of my work on the engine. The implementation makes use of Rust's `Rc` and `RefCell` types to ensure interior mutability of the Monte-Carlo game tree.
+- `zipper`: I experimented with an alternative approach towards representing the game tree, discovering this very clever data structure. However, for some reason the performance takes a huge hit as it stands, so I plan on profiling the code in the future. But this is the problem I am facing right now.
 
-\* Please correct me on this.
+### Profiling
+For me, trying to optimize performant software in general is sort of a mystery to me at the moment. I mostly rely on [flamegraph](https://github.com/flamegraph-rs/flamegraph) to give me a general gist of what my program is spending time on. This is still very useful, especially for recursive programs, since certain blocks of code are much "hotter" or "valuable" time-wise because they run multiple times. But as useful as flamegraph is, I wanted better. I wanted to know what parts of code have the best returns (and which are actually worth optimizing) and the effect the optimizations will have on the program. This is when I found a great talk by Emery Berger on ["Performance Matters"](https://www.youtube.com/watch?v=r-TLSBdHe1A&pp=ygUTcGVyZm9ybWFuY2UgbWF0dGVycw%3D%3D). They introduced a causal profiler known as `coz` which essentially answers the exact questions I want to know. Unfortunately I have been unsuccessful getting it to run on my Arch Linux (😅) machine. Currently I am experiencing [this issue](https://github.com/plasma-umass/coz/issues/233).
+
+### Contributing
+As a single developer, a second pair of eyes are incredibly useful. I strongly encourage you to share your thoughts or suggestions by creating [an issue](https://github.com/nicholasdejong/connect4/issues/new/choose). It can be as small as a single typo or as large as half the project! Pull requests are also welcome and encouraged. Thank you for taking an interest in this repository ❤️
