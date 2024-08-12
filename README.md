@@ -2,7 +2,9 @@
 A Rust program to play (decent) Connect 4.
 
 ## Installation
-First, clone the repository onto your computer: ```git clone https://github.com/nicholasdejong/connect4.git``` and `cd connect4` into it.
+First, clone the repository onto your computer:
+
+```git clone https://github.com/nicholasdejong/connect4.git``` and `cd connect4` into it.
 
 Next, ensure you have the [Rust toolchain](https://www.rust-lang.org/tools/install) installed.
 
