@@ -1,6 +1,31 @@
 # Connect 4
 A Rust program to play (decent) Connect 4.
 
+## Installation
+First, clone the repository onto your computer: ```git clone https://github.com/nicholasdejong/connect4.git``` and `cd connect4` into it.
+
+Next, ensure you have the [Rust toolchain](https://www.rust-lang.org/tools/install) installed.
+
+To run the engine:
+```cargo run --release --bin mcts```
+
+To run the interface:
+```cargo run --release --bin interface```
+
+Any executables that you have compiled can be found in `target/release/`. Note that all executables are standalone programs that do not depend on other files to work correctly, however, the interface can require you to provide paths to other engine executables to benchmark them successfully. 
+
+### Interacting with the Engine
+You are probably more interested in running the engine itself. Here are the basics for interacting with it:
+
+The engine always considers a certain position when searching for the best move. By default, it considers the starting position with `yellow` to move.
+
+- To change the colour of the player to move: ```setoption turn red``` or ```setoption turn yellow```
+- Changing the position is a little tricky, as you need to consider the "BitBoard" representation of the board. I use [this website](https://gekomad.github.io/Cinnamon/BitboardCalculator/?type=2) to visualize bitboards. To use this command, you need the bitboard representing all the `red` stones and the bitboard representing all the `yellow` stones. When copying the bitboards from the calculator, you must use the decimal ('DEC') representation, as HEX is not yet supported. For example, ```position custom 1234 5678``` sets the `red` bitboard to `1234` and the `yellow` bitboard to `5678`. Note that this command does not change the current player's turn. If you want the starting position, run ```position startpos```.
+- Engine evaluation is done through the `go` command. You can either instruct the engine to run for a certain amount of time, or indefinitely, and stop it in either case with the `stop` command. For a timely search, you need to provide the search duration in microseconds. For example, to evaluate for 1 second, run ```go time 1000000```. Indefinite evaluation is just ```go```.
+- After evaluation, a response `bestmove` is returned, followed by a number. This response represents the best move according to the engine's analysis. The number represents the column of the best move, ranging from 0 to 7 inclusively. For example, `bestmove 0` means the computer thinks the best column to place a stone for the current colour is the leftmost column (the columns are 0 indexed), and `bestmove 7` being the rightmost column.
+
+More in-depth documentation for the software is currently unavailable as the software is changing rapidly, but is to be expected in the future.
+
 ## How it works
 The program looks a few moves (aka turns) into the future (five on my computer) and when it reaches each of those future positions, it needs to determine which of those positions are best.
 It does this by playing a few hundred games, starting at each of the positions and playing random moves, until the game is over, be it won or drawn. For each win, the "position" gains a point.
